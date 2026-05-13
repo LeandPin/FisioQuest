@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Pensamento Catastrófico - FisioQuest</title>
+    <link rel="stylesheet" href="StyleQuest.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="index.html" class="logo"><img src="images/LOGO2.png" alt="FisioQuest Logo"></a>
+        <div class="menu">
+            <a href="index.html">Início</a>
+            <a href="SelecionarQuest.html">← Voltar</a>
+        </div>
+    </div>
+
+    <section id="questionario-catastrófico">
+        <h2>Pensamento Catastrófico</h2>
+        <p>
+            Indique o grau destes pensamentos quando está com dor:<br>
+            <strong>0 = mínima &nbsp;|&nbsp; 1 = leve &nbsp;|&nbsp; 2 = moderada &nbsp;|&nbsp; 3 = intensa &nbsp;|&nbsp; 4 = muito intensa</strong>
+        </p>
+
+        <form id="catasForm">
+            <label for="nomePaciente">Nome do paciente</label>
+            <input type="text" id="nomePaciente" name="nomePaciente" required placeholder="Nome completo">
+
+            <label for="dataAvaliacao">Data da avaliação</label>
+            <input type="date" id="dataAvaliacao" name="dataAvaliacao" required>
+
+            <div id="catas-container"></div>
+
+            <button type="submit" class="cta-button" style="width: 100%;">Finalizar Avaliação</button>
+            <button type="button" id="baixarPDF" class="cta-button" style="display:none; width: 100%; margin-top: 10px;">⬇ Baixar Relatório Detalhado (PDF)</button>
+        </form>
+
+        <div id="resultado-visual" class="resumo-clinico" style="display:none;">
+            <h3>Resumo da Avaliação</h3>
+            <div id="resultado-texto"></div>
+            <div class="canvas-container">
+                <canvas id="chartCanvas" width="300" height="300"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    const perguntasCatas = [
+        "1. A preocupação durante todo o tempo com a duração da dor",
+        "2. O sentimento de não poder prosseguir (continuar)",
+        "3. O sentimento que a dor é terrível e que não vai melhorar",
+        "4. O sentimento que a dor é horrível e que você não vai resistir",
+        "5. O pensamento de não poder estar mais com alguém",
+        "6. O medo que a dor pode se tornar ainda pior",
+        "7. O pensamento sobre outros episódios de dor",
+        "8. O desejo profundo que a dor desapareça",
+        "9. O sentimento de não conseguir tirar a dor do pensamento",
+        "10. O pensamento que ainda poderá doer mais",
+        "11. O pensamento que a dor é grave porque ela não quer parar",
+        "12. O pensamento de que não há nada para fazer para diminuir a dor",
+        "13. A preocupação que alguma coisa ruim pode acontecer"
+    ];
+
+    const subescalas = {
+        ruminação: [0, 1, 2, 7, 8, 9, 10],
+        magnificação: [5, 6, 12],
+        desamparo: [3, 4, 11]
+    };
+
+    const containerCatas = document.getElementById("catas-container");
+    const opcoes = ["Mínima","Leve","Moderada","Intensa","Muito intensa"];
+
+    perguntasCatas.forEach((texto, index) => {
+        const grupo = document.createElement("div");
+        grupo.classList.add("form-group");
+        grupo.innerHTML = `<label>${texto}</label>
+            <select id="cat${index + 1}" style="margin-top: 8px;">
+                ${[0,1,2,3,4].map(i => `<option value="${i}">${i} — ${opcoes[i]}</option>`).join('')}
+            </select>`;
+        containerCatas.appendChild(grupo);
+    });
+
+    document.getElementById("catasForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const nome = document.getElementById("nomePaciente").value;
+        let scoreTotal = 0, scoresDominios = { ruminação: 0, magnificação: 0, desamparo: 0 }, respostasRaw = [];
+
+        perguntasCatas.forEach((_, i) => {
+            const val = parseInt(document.getElementById(`cat${i+1}`).value);
+            scoreTotal += val;
+            respostasRaw.push(val);
+            if (subescalas.ruminação.includes(i)) scoresDominios.ruminação += val;
+            if (subescalas.magnificação.includes(i)) scoresDominios.magnificação += val;
+            if (subescalas.desamparo.includes(i)) scoresDominios.desamparo += val;
+        });
+
+        exibirResultadoVisual(scoreTotal, scoresDominios);
+        document.getElementById("baixarPDF").style.display = "block";
+        document.getElementById("baixarPDF").onclick = () => gerarPDFCompleto(scoreTotal, scoresDominios, respostasRaw);
+    });
+
+    function exibirResultadoVisual(total, dominios) {
+        document.getElementById("resultado-visual").style.display = "block";
+        const clinico = total >= 30;
+        document.getElementById("resultado-texto").innerHTML = `
+            <div style="margin-bottom: 16px; padding: 16px; border-radius: 10px; background: ${clinico ? '#fee2e2' : '#dcfce7'}; border: 2px solid ${clinico ? '#ef4444' : '#22c55e'};">
+                <div style="font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 4px;">
+                    ${clinico ? '⚠️ Clinicamente Significativo' : '✅ Nível Normal'}
+                </div>
+                <div><strong>Score Total:</strong> ${total} / 52</div>
+            </div>
+            <div style="font-size: 0.95rem; color: #5e6e89;">
+                <strong>Domínios:</strong> Ruminação (${dominios.ruminação}) · Magnificação (${dominios.magnificação}) · Desamparo (${dominios.desamparo})
+            </div>`;
+        desenharGraficoRadar(dominios);
+        document.getElementById("resultado-visual").scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function desenharGraficoRadar(dominios) {
+        const canvas = document.getElementById('chartCanvas');
+        const ctx = canvas.getContext('2d');
+        const centro = 150, raioMax = 100;
+        ctx.clearRect(0, 0, 300, 300);
+
+        ctx.strokeStyle = "#dce8f5"; ctx.lineWidth = 1;
+        for(let r=1; r<=4; r++) {
+            ctx.beginPath(); ctx.arc(centro, centro, (raioMax/4)*r, 0, Math.PI*2); ctx.stroke();
+        }
+
+        const p1 = { x: centro, y: centro - (dominios.ruminação/28)*raioMax };
+        const p2 = { x: centro + (dominios.magnificação/12)*raioMax*Math.cos(30*Math.PI/180), y: centro + (dominios.magnificação/12)*raioMax*Math.sin(30*Math.PI/180) };
+        const p3 = { x: centro - (dominios.desamparo/12)*raioMax*Math.cos(30*Math.PI/180), y: centro + (dominios.desamparo/12)*raioMax*Math.sin(30*Math.PI/180) };
+
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath();
+        ctx.fillStyle = "rgba(0, 87, 168, 0.18)"; ctx.fill();
+        ctx.strokeStyle = "#0057a8"; ctx.lineWidth = 2.5; ctx.stroke();
+
+        ctx.fillStyle = "#0057a8"; ctx.font = "bold 12px DM Sans, sans-serif";
+        ctx.fillText("Ruminação", centro - 32, centro - 112);
+        ctx.fillText("Magnificação", centro + 60, centro + 72);
+        ctx.fillText("Desamparo", centro - 118, centro + 72);
+    }
+
+    async function gerarPDFCompleto(total, dominios, respostas) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const nome = document.getElementById('nomePaciente').value;
+        const data = document.getElementById('dataAvaliacao').value;
+
+        doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(0, 87, 168);
+        doc.text("FisioQuest - Relatório de Catastrofização", 15, 20);
+        doc.setFontSize(12); doc.setTextColor(0);
+        doc.text(`Paciente: ${nome}`, 15, 30);
+        doc.text(`Data: ${data}`, 15, 37);
+        doc.text(`Pontuação Total: ${total} / 52`, 15, 47);
+        doc.line(15, 52, 195, 52);
+        doc.text("Distribuição por Domínios Psicológicos:", 15, 62);
+
+        const canvasImg = document.getElementById('chartCanvas').toDataURL("image/png");
+        doc.addImage(canvasImg, 'PNG', 50, 70, 100, 100);
+        doc.setFontSize(10);
+        doc.text(`• Ruminação: ${dominios.ruminação} pts (Foco repetitivo na dor)`, 15, 180);
+        doc.text(`• Magnificação: ${dominios.magnificação} pts (Superestimação da gravidade)`, 15, 187);
+        doc.text(`• Desamparo: ${dominios.desamparo} pts (Sensação de incapacidade de controle)`, 15, 194);
+        doc.text("Página 1 de 2", 100, 285);
+
+        doc.addPage();
+        doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+        doc.text("Detalhamento das Respostas:", 15, 20);
+        let y = 35;
+        const opcoes = ["Mínima","Leve","Moderada","Intensa","Muito intensa"];
+        perguntasCatas.forEach((texto, i) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.setFontSize(10); doc.setFont("helvetica", "bold");
+            doc.text(`${texto}`, 15, y); y += 6;
+            doc.setFont("helvetica", "normal");
+            doc.text(`→ Resposta: ${respostas[i]} (${opcoes[respostas[i]]})`, 20, y); y += 10;
+        });
+        doc.text("Página 2 de 2", 100, 285);
+        doc.save(`Catastrofização_${nome.replace(/\s+/g, '_')}.pdf`);
+    }
+    </script>
+</body>
+</html>

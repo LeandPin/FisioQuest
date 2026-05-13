@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FisioQuest</title>
+    <link rel="stylesheet" href="styleLanding.css">
+    <link rel="shortcut icon" href="images/LOGO2.png" type="image/png">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <a href="#" class="logo"><img src="images/fisioquestbranco.png" alt="FisioQuest Logo"></a>
+        <button class="menu-toggle" id="mobile-menu" aria-label="Menu">☰</button>
+        <div class="menu" id="menu-links">
+            <a href="#sobre-o-projeto">Sobre o Projeto</a>
+            <a href="#nossa-equipe">Quem Somos?</a>
+            <a href="SelecionarQuest.html">Questionários</a>
+            <a href="#localizacao">Localização</a>
+            <a href="https://wa.me/558391876157" target="_blank" class="cta-button">Agende sua Avaliação</a>
+        </div>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <h1>Fisioterapia com <span>tecnologia</span><br>e precisão</h1>
+        <p>Questionários clínicos inteligentes para uma avaliação mais eficaz, personalizada e engajadora do seu paciente.</p>
+        <a href="SelecionarQuest.html" class="cta-button">Acessar Questionários →</a>
+    </section>
+
+    <!-- SOBRE O PROJETO -->
+    <section id="sobre-o-projeto">
+        <h2>Sobre o Projeto</h2>
+        <p>
+            O <strong>FisioQuest</strong> é uma iniciativa inovadora que combina tecnologia e fisioterapia para oferecer uma nova abordagem na avaliação e acompanhamento de pacientes. Nosso objetivo é utilizar questionários dinâmicos e inteligentes para coletar dados precisos que auxiliem os profissionais a criarem planos de tratamento mais eficazes e personalizados.
+        </p>
+        <p style="margin-top: 16px;">
+            Acreditamos que a tecnologia pode ser uma grande aliada na reabilitação, otimizando o tempo do fisioterapeuta e proporcionando ao paciente uma jornada de recuperação mais clara e engajadora.
+        </p>
+    </section>
+
+    <!-- NOSSA EQUIPE -->
+    <section id="nossa-equipe">
+        <div class="container">
+            <h2 class="equipe-titulo">Conheça Nossa Equipe</h2>
+            <p class="equipe-subtitulo">Profissionais dedicados a transformar a fisioterapia através da inovação</p>
+
+            <div class="equipe-card-container">
+
+                <div class="equipe-card">
+                    <img src="images/FotoDiego.jpg" alt="Prof. Dr. Diêgo Sales" class="equipe-foto">
+                    <h3>Prof. Dr. Diêgo Sales</h3>
+                    <p>Coordenador do projeto, trazendo sua vasta experiência para guiar a FisioQuest com excelência e visão acadêmica.</p>
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=fisioquest.ufpb@gmail.com" target="_blank" rel="noopener noreferrer" class="equipe-button">✉ Contate-me</a>
+                </div>
+
+                <div class="equipe-card">
+                    <img src="images/FOTOIsaque.png" alt="Isaque" class="equipe-foto">
+                    <h3>Isaque</h3>
+                    <p>Aluno pesquisador, aplicando novas tecnologias e a energia da nova geração da fisioterapia ao projeto.</p>
+                    <a href="https://wa.me/558391876157" target="_blank" class="equipe-button">💬 Contate-me</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- LOCALIZAÇÃO -->
+    <section id="localizacao" class="card">
+        <div class="localizacao-content">
+
+            <div class="localizacao-info">
+                <h2>Nossa Localização</h2>
+                <p class="subtitle">Estamos no coração da inovação em saúde. Venha nos visitar!</p>
+
+                <ul class="contato-lista">
+                    <li>
+                        <strong>📍 Endereço:</strong>
+                        <p>Universidade Federal da Paraíba — Campus I, Cidade Universitária, João Pessoa - PB, 58051-900</p>
+                    </li>
+                    <li>
+                        <strong>📞 Telefone:</strong>
+                        <p>+55 (83) 98187-6157</p>
+                    </li>
+                    <li>
+                        <strong>✉️ E-mail:</strong>
+                        <p>fisioquest.ufpb@gmail.com</p>
+                    </li>
+                </ul>
+
+                <a href="https://www.google.com/maps/dir/?api=1&destination=Centro+de+Ciencias+da+Saude+-+CCS/UFPB" target="_blank" class="rota-button">
+                    🗺 Traçar Rota
+                </a>
+            </div>
+
+            <div class="mapa-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3958.915606696653!2d-34.84423432409091!3d-7.135757669992652!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7acc2b826a47b49%3A0xa250151a76ae7831!2sCentro%20de%20Ci%C3%AAncias%20da%20Sa%C3%BAde%20-%20CCS%20%2F%20UFPB!5e0!3m2!1spt-PT!2sbr!4v1738719096237!5m2!1spt-PT!2sbr" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        © 2025 <span>FisioQuest</span> · Universidade Federal da Paraíba · Desenvolvido com ❤ para a fisioterapia
+    </footer>
+
+    <script>
+        const menuToggle = document.getElementById('mobile-menu');
+        const menuLinks = document.getElementById('menu-links');
+
+        menuToggle.addEventListener('click', () => {
+            menuLinks.classList.toggle('show');
+            menuToggle.textContent = menuLinks.classList.contains('show') ? '✖' : '☰';
+        });
+
+        menuLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuLinks.classList.remove('show');
+                menuToggle.textContent = '☰';
+            });
+        });
+    </script>
+</body>
+</html>
