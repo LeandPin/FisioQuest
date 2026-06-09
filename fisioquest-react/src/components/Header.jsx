@@ -4,6 +4,7 @@ import {
   Nav,
   Button
 } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 import logo from "../assets/images/fisioquestbranco.png";
 
@@ -12,9 +13,9 @@ function Header() {
     <Navbar
       expand="lg"
       fixed="top"
-      className="navbar-custom"
+      className="navbar-custom py-1"
     >
-      <Container>
+      <Container fluid>
 
         <Navbar.Brand href="/">
           <img
@@ -38,7 +39,7 @@ function Header() {
               Quem Somos?
             </Nav.Link>
 
-            <Nav.Link href="#">
+            <Nav.Link as={Link} to="/questionarios">
               Questionários
             </Nav.Link>
 
@@ -50,7 +51,7 @@ function Header() {
 
           <Button
             href="https://wa.me/558391876157"
-            className="ms-3"
+            className="cta-button"
           >
             Agende sua Avaliação
           </Button>

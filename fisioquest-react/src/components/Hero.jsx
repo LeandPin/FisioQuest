@@ -1,4 +1,6 @@
 import { Container } from "react-bootstrap";
+import { Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 function Hero() {
   return (
@@ -19,12 +21,13 @@ function Hero() {
           engajadora do seu paciente.
         </p>
 
-        <a
-          href="#"
+        <Button
+          as={Link}
+          to="/questionarios"
           className="cta-button"
         >
           Acessar Questionários →
-        </a>
+        </Button>
 
       </Container>
 

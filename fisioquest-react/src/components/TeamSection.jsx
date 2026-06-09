@@ -12,9 +12,7 @@ import isaque from "../assets/images/FOTOIsaque.png";
 function TeamSection() {
   return (
     <section id="nossa-equipe">
-
       <Container>
-
         <h2 className="equipe-titulo">
           Conheça Nossa Equipe
         </h2>
@@ -24,85 +22,58 @@ function TeamSection() {
           fisioterapia através da inovação
         </p>
 
-        <Row className="g-4 justify-content-center">
+        <div className="equipe-card-container">
+          <div className="equipe-card">
+            <img
+              src={diego}
+              alt="Prof. Dr. Diêgo Sales"
+              className="equipe-foto"
+            />
 
-          <Col md={6} lg={5}>
+            <h3>Prof. Dr. Diêgo Sales</h3>
 
-            <Card className="equipe-card h-100">
+            <p>
+              Coordenador do projeto, trazendo sua vasta
+              experiência para guiar a FisioQuest com
+              excelência e visão acadêmica.
+            </p>
 
-              <Card.Img
-                variant="top"
-                src={diego}
-                className="equipe-foto"
-              />
+            <a
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=fisioquest.ufpb@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="equipe-button"
+            >
+              ✉ Contate-me
+            </a>
+          </div>
 
-              <Card.Body>
+          <div className="equipe-card">
+            <img
+              src={isaque}
+              alt="Isaque"
+              className="equipe-foto"
+            />
 
-                <Card.Title>
-                  Prof. Dr. Diêgo Sales
-                </Card.Title>
+            <h3>Isaque</h3>
 
-                <Card.Text>
-                  Coordenador do projeto, trazendo sua
-                  vasta experiência para guiar a
-                  FisioQuest com excelência e visão
-                  acadêmica.
-                </Card.Text>
+            <p>
+              Aluno pesquisador, aplicando novas tecnologias
+              e a energia da nova geração da fisioterapia ao
+              projeto.
+            </p>
 
-                <Button
-                  href="https://mail.google.com/mail/?view=cm&fs=1&to=fisioquest.ufpb@gmail.com"
-                  target="_blank"
-                  className="equipe-button"
-                >
-                  ✉ Contate-me
-                </Button>
-
-              </Card.Body>
-
-            </Card>
-
-          </Col>
-
-          <Col md={6} lg={5}>
-
-            <Card className="equipe-card h-100">
-
-              <Card.Img
-                variant="top"
-                src={isaque}
-                className="equipe-foto"
-              />
-
-              <Card.Body>
-
-                <Card.Title>
-                  Isaque
-                </Card.Title>
-
-                <Card.Text>
-                  Aluno pesquisador, aplicando novas
-                  tecnologias e a energia da nova
-                  geração da fisioterapia ao projeto.
-                </Card.Text>
-
-                <Button
-                  href="https://wa.me/558391876157"
-                  target="_blank"
-                  className="equipe-button"
-                >
-                  💬 Contate-me
-                </Button>
-
-              </Card.Body>
-
-            </Card>
-
-          </Col>
-
-        </Row>
-
+            <a
+              href="https://wa.me/558391876157"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="equipe-button"
+            >
+              💬 Contate-me
+            </a>
+          </div>
+        </div>
       </Container>
-
     </section>
   );
 }
