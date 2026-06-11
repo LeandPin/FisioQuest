@@ -6,7 +6,7 @@ function Footer() {
 
       <Container>
 
-        © 2025 FisioQuest · UFPB
+        © 2025 <span>FisioQuest</span> · Universidade Federal da Paraíba · Desenvolvido com ❤ para a fisioterapia
 
       </Container>
 
