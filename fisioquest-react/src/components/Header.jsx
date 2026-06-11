@@ -1,65 +1,42 @@
-import {
-  Navbar,
-  Container,
-  Nav,
-  Button
-} from "react-bootstrap";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-
 import logo from "../assets/images/fisioquestbranco.png";
 
 function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <Navbar
-      expand="lg"
-      fixed="top"
-      className="navbar-custom py-1"
-    >
-      <Container fluid>
+    <div className="navbar">
+      <a href="/" className="logo">
+        <img src={logo} alt="FisioQuest Logo" />
+      </a>
 
-        <Navbar.Brand href="/">
-          <img
-            src={logo}
-            alt="Logo"
-            height="55"
-          />
-        </Navbar.Brand>
+      <button
+        className="menu-toggle"
+        onClick={() => setMenuOpen(!menuOpen)}
+        aria-label="Menu"
+      >
+        {menuOpen ? "✖" : "☰"}
+      </button>
 
-        <Navbar.Toggle />
-
-        <Navbar.Collapse>
-
-          <Nav className="ms-auto align-items-center">
-
-            <Nav.Link href="#sobre-o-projeto">
-              Sobre o Projeto
-            </Nav.Link>
-
-            <Nav.Link href="#nossa-equipe">
-              Quem Somos?
-            </Nav.Link>
-
-            <Nav.Link as={Link} to="/questionarios">
-              Questionários
-            </Nav.Link>
-
-            <Nav.Link href="#localizacao">
-              Localização
-            </Nav.Link>
-
-          </Nav>
-
-          <Button
-            href="https://wa.me/558391876157"
-            className="cta-button"
-          >
-            Agende sua Avaliação
-          </Button>
-
-        </Navbar.Collapse>
-
-      </Container>
-    </Navbar>
+      <div className={`menu ${menuOpen ? "show" : ""}`}>
+        <a href="#sobre-o-projeto" onClick={closeMenu}>Sobre o Projeto</a>
+        <a href="#nossa-equipe" onClick={closeMenu}>Quem Somos?</a>
+        <Link to="/questionarios" onClick={closeMenu}>Questionários</Link>
+        <a href="#localizacao" onClick={closeMenu}>Localização</a>
+        <a
+          href="https://wa.me/558391876157"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="cta-button"
+          onClick={closeMenu}
+        >
+          Agende sua Avaliação
+        </a>
+      </div>
+    </div>
   );
 }
 
