@@ -308,22 +308,26 @@ body {
     margin: 0;
     border-radius: 0;
     box-shadow: none;
+    width: 100%; /* Força 100% da tela */
+    display: block;
 }
 
 .localizacao-content {
     display: flex;
     align-items: stretch;
-    flex-wrap: wrap;
+    width: 100%; /* Garante que o flex container expanda */
+    /* Removemos o flex-wrap: wrap para controlar via Media Query */
 }
 
+/* ======= CORREÇÃO DEFINITIVA DA LOCALIZAÇÃO ======= */
 .localizacao-info {
-    flex: 1;
-    min-width: 300px;
-    padding: 60px 50px;
+    flex: 1 1 50%;
+    padding: 60px 8%;
     background: var(--card-bg);
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: flex-start !important; /* Força tudo para a esquerda */
 }
 
 .localizacao-info h2 {
@@ -331,8 +335,9 @@ body {
     font-size: 2rem;
     font-weight: 700;
     color: var(--primary);
-    margin-top: 0;
-    margin-bottom: 6px;
+    margin: 0 0 6px 0 !important; 
+    text-align: left !important; /* Força o texto para a esquerda */
+    width: 100%;
 }
 
 .localizacao-info h2::after {
@@ -342,29 +347,34 @@ body {
     height: 4px;
     border-radius: 2px;
     background: var(--gradient-accent);
-    margin-top: 10px;
-    margin-bottom: 20px;
+    margin: 10px 0 20px 0 !important; /* Garante a linha na esquerda, sem margem automática */
 }
 
 .localizacao-info .subtitle {
     font-size: 1rem;
     color: var(--text-muted);
-    margin-bottom: 28px;
+    margin: 0 0 28px 0 !important;
+    text-align: left !important; /* Força o subtítulo para a esquerda */
+    max-width: 450px;
+    width: 100%;
 }
 
 .contato-lista {
     list-style: none;
-    padding: 0;
-    margin: 0 0 32px 0;
+    padding: 0 !important;
+    margin: 0 0 32px 0 !important;
+    width: 100%; /* Ocupa toda a largura do container esquerdo */
 }
 
 .contato-lista li {
     display: flex;
-    gap: 14px;
-    align-items: flex-start;
+    gap: 12px;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
     padding: 14px 0;
     border-bottom: 1px solid var(--border);
     font-size: 0.95rem;
+    width: 100%;
 }
 
 .contato-lista li:last-child { border-bottom: none; }
@@ -372,13 +382,17 @@ body {
 .contato-lista li strong {
     color: var(--primary);
     font-weight: 600;
-    min-width: 90px;
+    white-space: nowrap !important; /* ESSENCIAL: Impede o "Endereço:" de quebrar em duas linhas */
+    min-width: 110px; /* Dá o espaço certinho para os ícones e títulos */
+    text-align: left;
 }
 
 .contato-lista li p {
     color: var(--text-muted);
-    margin: 0;
+    margin: 0 !important;
     line-height: 1.5;
+    text-align: left !important;
+    flex: 1; /* ESSENCIAL: Faz o texto longo preencher o espaço natural à direita do título */
 }
 
 .rota-button {
@@ -404,8 +418,7 @@ body {
 }
 
 .mapa-container {
-    flex: 1;
-    min-width: 320px;
+    flex: 1 1 50%; /* Ocupa os outros 50% */
     min-height: 450px;
 }
 
@@ -470,6 +483,19 @@ footer span { color: var(--accent); font-weight: 600; }
     .menu a { width: 100%; padding: 12px 16px; }
     .menu.show { display: flex; }
     .menu-toggle { display: block; }
-    .localizacao-info { padding: 40px 28px; }
     .equipe-card { width: 90%; max-width: 340px; }
+    
+    /* NOVAS REGRAS PARA O CELULAR ABAIXO */
+    .localizacao-content {
+        flex-direction: column; /* Empilha o texto e o mapa no mobile */
+    }
+    .localizacao-info { 
+        padding: 40px 28px; 
+        flex: 1 1 100%; 
+        width: 100%; 
+    }
+    .mapa-container {
+        flex: 1 1 100%;
+        width: 100%;
+    }
 }
