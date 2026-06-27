@@ -43,7 +43,7 @@ function QuestionarioCards() {
             Identifica padrões negativos de pensamento durante episódios de dor
             — PCS.
           </p>
-          <Link to="/catastrofizacao">Responder →</Link>
+          <Link to="/pensamento-catastrofico">Responder →</Link>
         </div>
       </div>
     </>

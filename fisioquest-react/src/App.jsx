@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import SelecionarQuestionario from "./pages/SelecionarQuestionario";
 import Cinesiofobia from "./pages/Cinesiofobia";
+import PensamentoCatastrofico from "./pages/PensamentoCatastrofico";
 
 function App() {
   return (
@@ -20,6 +21,11 @@ function App() {
       <Route
         path="/cinesiofobia"
         element={<Cinesiofobia />}
+      />
+
+      <Route
+        path="/pensamento-catastrofico"
+        element={<PensamentoCatastrofico />}
       />
     </Routes>
   );
