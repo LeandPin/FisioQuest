@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import logo from "../assets/images/fisioquestbranco.png";
 
-function QuestionarioHeader() {
+// 1. Adicionamos a prop { mostrarVoltar } entre as chaves
+function QuestionarioHeader({ mostrarVoltar }) {
   return (
     <div className="navbar">
       <Link to="/" className="logo">
@@ -9,7 +10,12 @@ function QuestionarioHeader() {
       </Link>
 
       <div className="menu">
-        <Link to="/">← Início</Link>
+        <Link to="/">Início</Link>
+        
+        {/* 2. O botão só vai aparecer se mostrarVoltar for passado como true */}
+        {mostrarVoltar && (
+          <Link to="/questionarios">← Voltar</Link>
+        )}
       </div>
     </div>
   );
