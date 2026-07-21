@@ -10,7 +10,6 @@ target/
 .env.example
 docker/
 docker-compose.yml
-Dockerfile
 .dockerignore
 find_result.txt
 README.md

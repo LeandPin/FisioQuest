@@ -35,3 +35,7 @@ build/
 ### Environment variables ###
 .env
 *.pem
+!src/test/resources/test-keys/*.pem
+
+### Docker dev keys ###
+docker/dev-keys/*.pem

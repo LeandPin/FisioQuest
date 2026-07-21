@@ -1,11 +1,12 @@
 package br.edu.ufpb.fisioquest.entity;
 
-import br.edu.ufpb.fisioquest.util.JsonbConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,8 +36,8 @@ public class QuestionnaireResponse {
     @Column(nullable = false, length = 100)
     private String questionnaireType;
 
-    @Column(nullable = false, columnDefinition = "JSONB")
-    @Convert(converter = JsonbConverter.class)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> responses;
 
     @Column(nullable = false, precision = 10, scale = 2)
