@@ -11,6 +11,5 @@ target/
 docker/
 docker-compose.yml
 .dockerignore
-find_result.txt
 README.md
 HELP.md
