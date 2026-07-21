@@ -16,30 +16,5 @@ services:
       timeout: 3s
       retries: 5
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: fisioquest-api
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-    environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/fisioquest
-      DATABASE_USERNAME: fisioquest
-      DATABASE_PASSWORD: fisioquest
-      JWT_PRIVATE_KEY: file:/app/keys/private.pem
-      JWT_PUBLIC_KEY: file:/app/keys/public.pem
-      ALLOWED_ORIGINS: http://localhost:3000
-      SERVER_PORT: 8080
-      SPRING_PROFILES_ACTIVE: dev
-    volumes:
-      - ./docker/dev-keys:/app/keys:ro
-    env_file:
-      - path: .env
-        required: false
-
 volumes:
   pgdata:
