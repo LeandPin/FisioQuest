@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fisioquest-db
+    environment:
+      POSTGRES_DB: fisioquest
+      POSTGRES_USER: fisioquest
+      POSTGRES_PASSWORD: fisioquest
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fisioquest -d fisioquest"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fisioquest-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/fisioquest
+      DATABASE_USERNAME: fisioquest
+      DATABASE_PASSWORD: fisioquest
+      JWT_PRIVATE_KEY: file:/app/keys/private.pem
+      JWT_PUBLIC_KEY: file:/app/keys/public.pem
+      ALLOWED_ORIGINS: http://localhost:3000
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+      - ./docker/dev-keys:/app/keys:ro
+    env_file:
+      - path: .env
+        required: false
+
+volumes:
+  pgdata:
