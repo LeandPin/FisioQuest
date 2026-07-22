@@ -1,11 +1,20 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import logo from "../assets/images/fisioquestbranco.png";
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const closeMenu = () => setMenuOpen(false);
+
+  const handleLogout = async () => {
+    closeMenu();
+    await logout();
+    navigate("/");
+  };
 
   return (
     <div className="navbar">
@@ -35,6 +44,21 @@ function Header() {
         >
           Agende sua Avaliação
         </a>
+
+        {user ? (
+          <>
+            <Link to="/dashboard" onClick={closeMenu}>Dashboard</Link>
+            <Link to="/patients" onClick={closeMenu}>Pacientes</Link>
+            <button className="cta-button" onClick={handleLogout} style={{ cursor: "pointer" }}>
+              Sair
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" onClick={closeMenu}>Entrar</Link>
+            <Link to="/register" onClick={closeMenu} className="cta-button">Cadastrar</Link>
+          </>
+        )}
       </div>
     </div>
   );

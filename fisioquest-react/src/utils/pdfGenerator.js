@@ -112,7 +112,7 @@ export const gerarPDF = async (nome, data, resultado, respostas, containerHtml) 
   doc.setFont("helvetica", "bold");
   doc.text("1. Mapeamento de Áreas de Medo:", 15, 70);
 
-  const secaoMapa = containerHtml.querySelector('.mapa-container');
+  const secaoMapa = containerHtml.querySelector('.mapa-container-clinico');
 
   if (secaoMapa) {
     const canvasImg = await html2canvas(secaoMapa, { scale: 2 });
@@ -163,7 +163,7 @@ export const generateAnonymousPdf = async (formData, result) => {
   doc.text("1. Mapeamento de Áreas de Medo:", 15, 70);
 
   if (containerHtml) {
-    const secaoMapa = containerHtml.querySelector('.mapa-container');
+    const secaoMapa = containerHtml.querySelector('.mapa-container-clinico');
     if (secaoMapa) {
       const canvasImg = await html2canvas(secaoMapa, { scale: 2 });
       const imgData = canvasImg.toDataURL("image/png");
