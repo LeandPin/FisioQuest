@@ -41,30 +41,75 @@ public class DashboardService {
         User physiotherapist = userRepository.findById(physiotherapistId)
                 .orElseThrow(() -> new IllegalArgumentException("Fisioterapeuta não encontrado."));
 
-        int totalPatients = patientRepository.findAllByPhysiotherapist(physiotherapist).size();
-
-        int totalQuestionnairesApplied = (int) questionnaireResponseRepository.countByPhysiotherapist(physiotherapist);
-
-        Instant lastQuestionnaireAppliedAt = questionnaireResponseRepository
-                .findTopByPhysiotherapistOrderByAppliedAtDesc(physiotherapist)
-                .map(QuestionnaireResponse::getAppliedAt)
-                .orElse(null);
+        List<Patient> patients = patientRepository.findAllByPhysiotherapist(physiotherapist);
+        int totalPatients = patients.size();
 
         List<QuestionnaireResponse> allResponses = questionnaireResponseRepository
                 .findAllByPhysiotherapist(physiotherapist);
 
+        int totalQuestionnairesApplied = allResponses.size();
+
+        Instant lastQuestionnaireAppliedAt = allResponses.stream()
+                .max(Comparator.comparing(QuestionnaireResponse::getAppliedAt))
+                .map(QuestionnaireResponse::getAppliedAt)
+                .orElse(null);
+
+        // New metrics: this month
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        Instant startOfMonthInstant = startOfMonth.atStartOfDay(ZoneOffset.UTC).toInstant();
+
+        List<QuestionnaireResponse> thisMonthResponses = allResponses.stream()
+                .filter(r -> r.getAppliedAt().isAfter(startOfMonthInstant) || r.getAppliedAt().equals(startOfMonthInstant))
+                .toList();
+
+        int questionnairesThisMonth = thisMonthResponses.size();
+
+        int patientsWithResponsesThisMonth = (int) thisMonthResponses.stream()
+                .map(r -> r.getPatient().getId())
+                .distinct()
+                .count();
+
+        // Average TSK score (across all TSK responses)
+        List<QuestionnaireResponse> tskResponses = allResponses.stream()
+                .filter(r -> "TSK".equalsIgnoreCase(r.getQuestionnaireType()))
+                .toList();
+
+        BigDecimal averageTskScore = null;
+        if (!tskResponses.isEmpty()) {
+            BigDecimal total = tskResponses.stream()
+                    .map(QuestionnaireResponse::getScore)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            averageTskScore = total.divide(BigDecimal.valueOf(tskResponses.size()), 2, RoundingMode.HALF_UP);
+        }
+
+        // Average PCS score (across all PCS responses)
+        List<QuestionnaireResponse> pcsResponses = allResponses.stream()
+                .filter(r -> "PCS".equalsIgnoreCase(r.getQuestionnaireType()))
+                .toList();
+
+        BigDecimal averagePcsScore = null;
+        if (!pcsResponses.isEmpty()) {
+            BigDecimal total = pcsResponses.stream()
+                    .map(QuestionnaireResponse::getScore)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            averagePcsScore = total.divide(BigDecimal.valueOf(pcsResponses.size()), 2, RoundingMode.HALF_UP);
+        }
+
         List<ScoreDistributionItem> tskScoreDistribution = computeTskScoreDistribution(allResponses);
-
-        List<Patient> patients = patientRepository.findAllByPhysiotherapist(physiotherapist);
+        List<ScoreDistributionItem> pcsScoreDistribution = computePcsScoreDistribution(allResponses);
         List<PatientScoreComparison> patientScoreComparisons = computePatientScoreComparisons(patients, allResponses);
-
         List<TemporalEvolutionItem> temporalEvolution = computeTemporalEvolution(allResponses);
 
         return new DashboardResponse(
                 totalPatients,
                 totalQuestionnairesApplied,
                 lastQuestionnaireAppliedAt,
+                questionnairesThisMonth,
+                patientsWithResponsesThisMonth,
+                averageTskScore,
+                averagePcsScore,
                 tskScoreDistribution,
+                pcsScoreDistribution,
                 patientScoreComparisons,
                 temporalEvolution
         );
@@ -98,6 +143,37 @@ public class DashboardService {
                 new ScoreDistributionItem("25-36", moderateFear),
                 new ScoreDistributionItem("37-52", highFear),
                 new ScoreDistributionItem("53-68", veryHighFear)
+        );
+    }
+
+    private List<ScoreDistributionItem> computePcsScoreDistribution(List<QuestionnaireResponse> allResponses) {
+        List<QuestionnaireResponse> pcsResponses = allResponses.stream()
+                .filter(r -> "PCS".equalsIgnoreCase(r.getQuestionnaireType()))
+                .toList();
+
+        int low = 0;
+        int moderate = 0;
+        int high = 0;
+        int veryHigh = 0;
+
+        for (QuestionnaireResponse r : pcsResponses) {
+            int score = r.getScore().intValue();
+            if (score >= 0 && score <= 12) {
+                low++;
+            } else if (score >= 13 && score <= 25) {
+                moderate++;
+            } else if (score >= 26 && score <= 38) {
+                high++;
+            } else if (score >= 39 && score <= 52) {
+                veryHigh++;
+            }
+        }
+
+        return List.of(
+                new ScoreDistributionItem("0-12", low),
+                new ScoreDistributionItem("13-25", moderate),
+                new ScoreDistributionItem("26-38", high),
+                new ScoreDistributionItem("39-52", veryHigh)
         );
     }
 
