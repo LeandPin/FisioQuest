@@ -84,6 +84,19 @@ const styles = {
     outline: "none",
     boxSizing: "border-box",
   },
+  select: {
+    width: "100%",
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: "0.95rem",
+    padding: "10px 14px",
+    border: "1.5px solid #e2e8f0",
+    borderRadius: "8px",
+    background: "#f8fafc",
+    color: "#1e293b",
+    outline: "none",
+    boxSizing: "border-box",
+    cursor: "pointer",
+  },
   textarea: {
     width: "100%",
     fontFamily: "'DM Sans', sans-serif",
@@ -150,6 +163,7 @@ function PatientSelector({ onPatientSelected }) {
   // Formulário de novo paciente
   const [fullName, setFullName] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [sex, setSex] = useState(""); 
   const [notes, setNotes] = useState("");
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState("");
@@ -184,9 +198,18 @@ function PatientSelector({ onPatientSelected }) {
       return;
     }
 
+
+    if (!sex) {
+      setFormError("O campo sexo é obrigatório.");
+      return;
+    }
+
     setCreating(true);
     try {
-      const body = { fullName: fullName.trim() };
+      const body = { 
+        fullName: fullName.trim(),
+        sex: sex 
+      };
       if (birthDate) body.birthDate = birthDate;
       if (notes.trim()) body.notes = notes.trim();
 
@@ -194,6 +217,7 @@ function PatientSelector({ onPatientSelected }) {
       setPatients((prev) => [...prev, data]);
       setFullName("");
       setBirthDate("");
+      setSex(""); 
       setNotes("");
       onPatientSelected(data);
     } catch {
@@ -272,6 +296,24 @@ function PatientSelector({ onPatientSelected }) {
             style={styles.input}
             required
           />
+        </div>
+
+        <div style={styles.field}>
+          <label htmlFor="patient-sex" style={styles.label}>
+            Sexo *
+          </label>
+          <select
+            id="patient-sex"
+            value={sex}
+            onChange={(e) => setSex(e.target.value)}
+            style={styles.select}
+            required
+          >
+            <option value="" disabled>Selecione o sexo</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMININO">Feminino</option>
+            <option value="OUTRO">Outro</option>
+          </select>
         </div>
 
         <div style={styles.field}>
