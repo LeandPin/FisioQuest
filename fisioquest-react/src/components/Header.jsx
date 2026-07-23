@@ -21,9 +21,9 @@ function Header() {
 
   return (
     <div className="navbar">
-      <a href="/" className="logo">
+      <Link to="/" className="logo">
         <img src={logo} alt="FisioQuest Logo" />
-      </a>
+      </Link>
 
       <button
         className="menu-toggle"

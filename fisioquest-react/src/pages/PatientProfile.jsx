@@ -12,6 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import Header from "../components/Header";
 import "../styles/patient-profile.css";
 
 function PatientProfile() {
@@ -95,32 +96,40 @@ function PatientProfile() {
 
   if (loading) {
     return (
-      <div className="patient-profile-page">
-        <div className="patient-profile-loading">
-          <p>Carregando dados do paciente...</p>
+      <>
+        <Header />
+        <div className="patient-profile-page">
+          <div className="patient-profile-loading">
+            <p>Carregando dados do paciente...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="patient-profile-page">
-        <div className="patient-profile-error" role="alert">
-          <p>{error}</p>
-          <button
-            className="patient-profile-back-btn"
-            onClick={() => navigate("/patients")}
-          >
-            Voltar para Pacientes
-          </button>
+      <>
+        <Header />
+        <div className="patient-profile-page">
+          <div className="patient-profile-error" role="alert">
+            <p>{error}</p>
+            <button
+              className="patient-profile-back-btn"
+              onClick={() => navigate("/patients")}
+            >
+              Voltar para Pacientes
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="patient-profile-page">
+    <>
+      <Header />
+      <div className="patient-profile-page">
       <div className="patient-profile-container">
         {/* Header */}
         <header className="patient-profile-header">
@@ -207,6 +216,7 @@ function PatientProfile() {
         </section>
       </div>
     </div>
+    </>
   );
 }
 
