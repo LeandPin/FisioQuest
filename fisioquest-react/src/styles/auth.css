@@ -157,6 +157,19 @@
   text-decoration: underline;
 }
 
+.auth-back-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.22s ease;
+}
+
+.auth-back-link:hover {
+  color: var(--primary);
+}
+
 /* ======= RESPONSIVE ======= */
 
 @media (max-width: 480px) {

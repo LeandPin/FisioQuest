@@ -97,6 +97,9 @@ function Login() {
             Não tem uma conta?{" "}
             <Link to="/register">Criar conta</Link>
           </p>
+          <Link to="/" className="auth-back-link">
+            ← Voltar ao início
+          </Link>
         </div>
       </div>
     </div>

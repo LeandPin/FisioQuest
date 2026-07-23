@@ -16,7 +16,7 @@ function Header() {
   const handleLogout = async () => {
     closeMenu();
     await logout();
-    navigate("/");
+    navigate("/login");
   };
 
   return (

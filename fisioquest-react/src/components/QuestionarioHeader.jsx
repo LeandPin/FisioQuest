@@ -8,7 +8,7 @@ function QuestionarioHeader({ mostrarVoltar }) {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/");
+    navigate("/login");
   };
 
   return (
@@ -18,21 +18,26 @@ function QuestionarioHeader({ mostrarVoltar }) {
       </Link>
 
       <div className="menu">
-        <Link to="/">Início</Link>
-
-        {mostrarVoltar && (
-          <Link to="/questionarios">← Voltar</Link>
-        )}
-
         {user ? (
           <>
+            <Link to="/questionarios">Questionários</Link>
+            {mostrarVoltar && (
+              <Link to="/questionarios">← Voltar</Link>
+            )}
             <Link to="/dashboard">Dashboard</Link>
+            <Link to="/patients">Pacientes</Link>
             <button className="cta-button" onClick={handleLogout} style={{ cursor: "pointer" }}>
               Sair
             </button>
           </>
         ) : (
-          <Link to="/login">Entrar</Link>
+          <>
+            <Link to="/">Início</Link>
+            {mostrarVoltar && (
+              <Link to="/questionarios">← Voltar</Link>
+            )}
+            <Link to="/login">Entrar</Link>
+          </>
         )}
       </div>
     </div>

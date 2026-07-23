@@ -197,7 +197,9 @@
   border-radius: var(--radius);
   padding: 32px;
   width: 100%;
-  max-width: 480px;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   animation: modalFadeIn 0.2s ease;
 }
@@ -242,7 +244,8 @@
 }
 
 .patients-form-group input,
-.patients-form-group textarea {
+.patients-form-group textarea,
+.patients-form-group select {
   padding: 12px 14px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
@@ -254,15 +257,36 @@
 }
 
 .patients-form-group input:focus,
-.patients-form-group textarea:focus {
+.patients-form-group textarea:focus,
+.patients-form-group select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(0, 87, 168, 0.1);
 }
 
+.patients-form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
 .patients-form-group textarea {
   resize: vertical;
   min-height: 80px;
+}
+
+.patients-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.patients-form-group--flex {
+  grid-column: span 1;
 }
 
 .patients-form-actions {
@@ -349,5 +373,9 @@
 
   .patients-modal {
     padding: 24px 20px;
+  }
+
+  .patients-form-row {
+    grid-template-columns: 1fr;
   }
 }
