@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import apiClient from "../services/apiClient";
+import Header from "../components/Header";
 import "../styles/dashboard.css";
 
 function formatDate(isoString) {
@@ -52,21 +53,27 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-loading">
-          <p>Carregando dashboard...</p>
+      <>
+        <Header />
+        <div className="dashboard-page">
+          <div className="dashboard-loading">
+            <p>Carregando dashboard...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-error" role="alert">
-          <p>{error}</p>
+      <>
+        <Header />
+        <div className="dashboard-page">
+          <div className="dashboard-error" role="alert">
+            <p>{error}</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -87,8 +94,10 @@ function Dashboard() {
   const hasTemporalEvolution = temporalEvolution && temporalEvolution.length >= 2;
 
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-header">
+    <>
+      <Header />
+      <div className="dashboard-page">
+        <header className="dashboard-header">
         <h1>Dashboard</h1>
         <p className="dashboard-subtitle">Visão geral dos seus pacientes e questionários</p>
       </header>
@@ -186,6 +195,7 @@ function Dashboard() {
         </Link>
       </section>
     </div>
+    </>
   );
 }
 
