@@ -23,6 +23,13 @@ function PatientProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Editable fields
+  const [editingClinical, setEditingClinical] = useState(false);
+  const [medicalDiagnosis, setMedicalDiagnosis] = useState("");
+  const [mainComplaint, setMainComplaint] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
   useEffect(() => {
     const fetchPatient = async () => {
       try {
@@ -30,6 +37,8 @@ function PatientProfile() {
         setError("");
         const { data } = await apiClient.get(`/api/patients/${id}`);
         setPatient(data);
+        setMedicalDiagnosis(data.medicalDiagnosis || "");
+        setMainComplaint(data.mainComplaint || "");
       } catch (err) {
         if (err.response?.status === 404) {
           setError("Paciente não encontrado.");
@@ -58,7 +67,6 @@ function PatientProfile() {
       grouped[qr.questionnaireType].push(qr);
     });
 
-    // Only include types with >= 2 responses, sorted chronologically
     const charts = {};
     Object.entries(grouped).forEach(([type, responses]) => {
       if (responses.length >= 2) {
@@ -75,7 +83,7 @@ function PatientProfile() {
     return charts;
   }, [patient]);
 
-  // Sort responses chronologically (most recent first) for the list
+  // Sort responses chronologically (most recent first)
   const sortedResponses = useMemo(() => {
     if (!patient?.responses) return [];
     return patient.responses
@@ -92,6 +100,34 @@ function PatientProfile() {
 
   const handleStartQuestionnaire = () => {
     navigate("/questionarios");
+  };
+
+  const handleSaveClinical = async () => {
+    setSaveError("");
+    setSaving(true);
+    try {
+      const { data } = await apiClient.put(`/api/patients/${id}`, {
+        medicalDiagnosis: medicalDiagnosis.trim() || null,
+        mainComplaint: mainComplaint.trim() || null,
+      });
+      setPatient(data);
+      setEditingClinical(false);
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setSaveError("Sem permissão para editar.");
+      } else {
+        setSaveError("Erro ao salvar. Tente novamente.");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setMedicalDiagnosis(patient.medicalDiagnosis || "");
+    setMainComplaint(patient.mainComplaint || "");
+    setEditingClinical(false);
+    setSaveError("");
   };
 
   if (loading) {
@@ -130,92 +166,193 @@ function PatientProfile() {
     <>
       <Header />
       <div className="patient-profile-page">
-      <div className="patient-profile-container">
-        {/* Header */}
-        <header className="patient-profile-header">
-          <div className="patient-profile-info">
-            <h1>{patient.fullName}</h1>
-            {patient.birthDate && (
-              <p className="patient-profile-birth">
-                Data de nascimento: {formatDate(patient.birthDate)}
-              </p>
-            )}
-            {patient.notes && (
-              <p className="patient-profile-notes">{patient.notes}</p>
-            )}
-          </div>
-          <button
-            className="patient-profile-new-questionnaire-btn"
-            onClick={handleStartQuestionnaire}
-          >
-            Novo Questionário
-          </button>
-        </header>
-
-        {/* Charts Section */}
-        {Object.keys(chartDataByType).length > 0 && (
-          <section className="patient-profile-charts">
-            <h2>Evolução Temporal</h2>
-            {Object.entries(chartDataByType).map(([type, data]) => (
-              <div key={type} className="patient-profile-chart-card">
-                <h3>Evolução do Score — {type}</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="score"
-                      name="Score"
-                      stroke="#0057a8"
-                      strokeWidth={2}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+        <div className="patient-profile-container">
+          {/* Header */}
+          <header className="patient-profile-header">
+            <div className="patient-profile-info">
+              <h1>{patient.fullName}</h1>
+              <div className="patient-profile-meta">
+                <span className="patient-profile-sex">{patient.sex}</span>
+                {patient.birthDate && (
+                  <span>Nascimento: {formatDate(patient.birthDate)}</span>
+                )}
               </div>
-            ))}
-          </section>
-        )}
+            </div>
+            <button
+              className="patient-profile-new-questionnaire-btn"
+              onClick={handleStartQuestionnaire}
+            >
+              Novo Questionário
+            </button>
+          </header>
 
-        {/* Responses List */}
-        <section className="patient-profile-responses">
-          <h2>Histórico de Questionários</h2>
-          {sortedResponses.length === 0 ? (
-            <p className="patient-profile-empty">
-              Nenhum questionário respondido ainda.
-            </p>
-          ) : (
-            <ul className="patient-profile-response-list">
-              {sortedResponses.map((qr) => (
-                <li key={qr.id} className="patient-profile-response-item">
-                  <div className="patient-profile-response-info">
-                    <span className="patient-profile-response-type">
-                      {qr.questionnaireType}
-                    </span>
-                    <span className="patient-profile-response-date">
-                      {formatDateTime(qr.appliedAt)}
-                    </span>
-                    <span className="patient-profile-response-score">
-                      Score: {Number(qr.score)}
-                    </span>
-                  </div>
+          {/* Patient Details Section */}
+          <section className="patient-profile-details">
+            <h2>Informações do Paciente</h2>
+            <div className="patient-profile-details-grid">
+              {patient.cpf && (
+                <div className="patient-detail-item">
+                  <span className="patient-detail-label">CPF</span>
+                  <span className="patient-detail-value">{patient.cpf}</span>
+                </div>
+              )}
+              {patient.phone && (
+                <div className="patient-detail-item">
+                  <span className="patient-detail-label">Telefone</span>
+                  <span className="patient-detail-value">{patient.phone}</span>
+                </div>
+              )}
+              {patient.address && (
+                <div className="patient-detail-item patient-detail-item--full">
+                  <span className="patient-detail-label">Endereço</span>
+                  <span className="patient-detail-value">{patient.address}</span>
+                </div>
+              )}
+              {patient.notes && (
+                <div className="patient-detail-item patient-detail-item--full">
+                  <span className="patient-detail-label">Observações</span>
+                  <span className="patient-detail-value">{patient.notes}</span>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Clinical Info - Editable */}
+          <section className="patient-profile-clinical">
+            <div className="patient-profile-clinical-header">
+              <h2>Informações Clínicas</h2>
+              {!editingClinical && (
+                <button
+                  className="patient-profile-edit-btn"
+                  onClick={() => setEditingClinical(true)}
+                >
+                  Editar
+                </button>
+              )}
+            </div>
+
+            {editingClinical ? (
+              <div className="patient-profile-clinical-form">
+                <div className="patient-profile-clinical-field">
+                  <label htmlFor="edit-diagnosis">Diagnóstico Médico</label>
+                  <textarea
+                    id="edit-diagnosis"
+                    value={medicalDiagnosis}
+                    onChange={(e) => setMedicalDiagnosis(e.target.value)}
+                    placeholder="Diagnóstico médico do paciente"
+                  />
+                </div>
+                <div className="patient-profile-clinical-field">
+                  <label htmlFor="edit-complaint">Queixa Principal</label>
+                  <textarea
+                    id="edit-complaint"
+                    value={mainComplaint}
+                    onChange={(e) => setMainComplaint(e.target.value)}
+                    placeholder="Queixa principal do paciente"
+                  />
+                </div>
+                {saveError && (
+                  <p className="patient-profile-clinical-error">{saveError}</p>
+                )}
+                <div className="patient-profile-clinical-actions">
                   <button
-                    className="patient-profile-pdf-btn"
-                    onClick={() => handleDownloadPdf(qr)}
+                    className="patient-profile-cancel-btn"
+                    onClick={handleCancelEdit}
+                    disabled={saving}
                   >
-                    Baixar PDF
+                    Cancelar
                   </button>
-                </li>
+                  <button
+                    className="patient-profile-save-btn"
+                    onClick={handleSaveClinical}
+                    disabled={saving}
+                  >
+                    {saving ? "Salvando..." : "Salvar"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="patient-profile-clinical-display">
+                <div className="patient-detail-item patient-detail-item--full">
+                  <span className="patient-detail-label">Diagnóstico Médico</span>
+                  <span className="patient-detail-value">
+                    {patient.medicalDiagnosis || "Não informado"}
+                  </span>
+                </div>
+                <div className="patient-detail-item patient-detail-item--full">
+                  <span className="patient-detail-label">Queixa Principal</span>
+                  <span className="patient-detail-value">
+                    {patient.mainComplaint || "Não informado"}
+                  </span>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Charts Section */}
+          {Object.keys(chartDataByType).length > 0 && (
+            <section className="patient-profile-charts">
+              <h2>Evolução Temporal</h2>
+              {Object.entries(chartDataByType).map(([type, data]) => (
+                <div key={type} className="patient-profile-chart-card">
+                  <h3>Evolução do Score — {type}</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={data}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        name="Score"
+                        stroke="#0057a8"
+                        strokeWidth={2}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               ))}
-            </ul>
+            </section>
           )}
-        </section>
+
+          {/* Responses List */}
+          <section className="patient-profile-responses">
+            <h2>Histórico de Questionários</h2>
+            {sortedResponses.length === 0 ? (
+              <p className="patient-profile-empty">
+                Nenhum questionário respondido ainda.
+              </p>
+            ) : (
+              <ul className="patient-profile-response-list">
+                {sortedResponses.map((qr) => (
+                  <li key={qr.id} className="patient-profile-response-item">
+                    <div className="patient-profile-response-info">
+                      <span className="patient-profile-response-type">
+                        {qr.questionnaireType}
+                      </span>
+                      <span className="patient-profile-response-date">
+                        {formatDateTime(qr.appliedAt)}
+                      </span>
+                      <span className="patient-profile-response-score">
+                        Score: {Number(qr.score)}
+                      </span>
+                    </div>
+                    <button
+                      className="patient-profile-pdf-btn"
+                      onClick={() => handleDownloadPdf(qr)}
+                    >
+                      Baixar PDF
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       </div>
-    </div>
     </>
   );
 }

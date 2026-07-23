@@ -38,7 +38,9 @@ function Patients() {
     return patients.filter(
       (p) =>
         p.fullName.toLowerCase().includes(term) ||
-        (p.notes && p.notes.toLowerCase().includes(term))
+        (p.notes && p.notes.toLowerCase().includes(term)) ||
+        (p.cpf && p.cpf.includes(term)) ||
+        (p.phone && p.phone.includes(term))
     );
   }, [patients, search]);
 
@@ -93,7 +95,7 @@ function Patients() {
           <input
             type="text"
             className="patients-search-input"
-            placeholder="Buscar por nome ou observações..."
+            placeholder="Buscar por nome, CPF ou telefone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -126,10 +128,14 @@ function Patients() {
               >
                 <h3 className="patient-card-name">{patient.fullName}</h3>
                 <div className="patient-card-details">
-                  {patient.birthDate && (
-                    <span className="patient-card-detail">
-                      Nascimento: {formatDate(patient.birthDate)}
-                    </span>
+                  <span className="patient-card-detail">
+                    {patient.sex} {patient.birthDate && `• Nasc: ${formatDate(patient.birthDate)}`}
+                  </span>
+                  {patient.phone && (
+                    <span className="patient-card-detail">📞 {patient.phone}</span>
+                  )}
+                  {patient.cpf && (
+                    <span className="patient-card-detail">CPF: {patient.cpf}</span>
                   )}
                   <span className="patient-card-detail">
                     Cadastrado em: {formatDateTime(patient.createdAt)}
@@ -162,7 +168,13 @@ function Patients() {
 
 function CreatePatientModal({ onClose, onCreated }) {
   const [fullName, setFullName] = useState("");
+  const [sex, setSex] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [medicalDiagnosis, setMedicalDiagnosis] = useState("");
+  const [mainComplaint, setMainComplaint] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -176,11 +188,22 @@ function CreatePatientModal({ onClose, onCreated }) {
       return;
     }
 
+    if (!sex) {
+      setFormError("O sexo é obrigatório.");
+      return;
+    }
+
     try {
       setSubmitting(true);
       const payload = {
         fullName: fullName.trim(),
+        sex,
         birthDate: birthDate || null,
+        cpf: cpf.trim() || null,
+        phone: phone.trim() || null,
+        address: address.trim() || null,
+        medicalDiagnosis: medicalDiagnosis.trim() || null,
+        mainComplaint: mainComplaint.trim() || null,
         notes: notes.trim() || null,
       };
       const { data } = await apiClient.post("/api/patients", payload);
@@ -209,35 +232,110 @@ function CreatePatientModal({ onClose, onCreated }) {
       <div className="patients-modal" role="dialog" aria-labelledby="modal-title">
         <h2 id="modal-title">Novo Paciente</h2>
         <form className="patients-form" onSubmit={handleSubmit}>
+          <div className="patients-form-row">
+            <div className="patients-form-group patients-form-group--flex">
+              <label htmlFor="patient-name">Nome Completo *</label>
+              <input
+                id="patient-name"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Nome completo do paciente"
+                autoFocus
+              />
+            </div>
+
+            <div className="patients-form-group">
+              <label htmlFor="patient-sex">Sexo *</label>
+              <select
+                id="patient-sex"
+                value={sex}
+                onChange={(e) => setSex(e.target.value)}
+              >
+                <option value="">Selecione</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="patients-form-row">
+            <div className="patients-form-group">
+              <label htmlFor="patient-birth">Data de Nascimento</label>
+              <input
+                id="patient-birth"
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+              />
+            </div>
+
+            <div className="patients-form-group">
+              <label htmlFor="patient-cpf">CPF (opcional)</label>
+              <input
+                id="patient-cpf"
+                type="text"
+                value={cpf}
+                onChange={(e) => setCpf(e.target.value)}
+                placeholder="000.000.000-00"
+                maxLength={14}
+              />
+            </div>
+          </div>
+
+          <div className="patients-form-row">
+            <div className="patients-form-group">
+              <label htmlFor="patient-phone">Telefone</label>
+              <input
+                id="patient-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+              />
+            </div>
+
+            <div className="patients-form-group patients-form-group--flex">
+              <label htmlFor="patient-address">Endereço (opcional)</label>
+              <input
+                id="patient-address"
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Endereço do paciente"
+              />
+            </div>
+          </div>
+
           <div className="patients-form-group">
-            <label htmlFor="patient-name">Nome Completo *</label>
-            <input
-              id="patient-name"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Nome completo do paciente"
-              autoFocus
+            <label htmlFor="patient-diagnosis">Diagnóstico Médico (opcional)</label>
+            <textarea
+              id="patient-diagnosis"
+              value={medicalDiagnosis}
+              onChange={(e) => setMedicalDiagnosis(e.target.value)}
+              placeholder="Diagnóstico médico do paciente"
             />
           </div>
 
           <div className="patients-form-group">
-            <label htmlFor="patient-birth">Data de Nascimento</label>
-            <input
-              id="patient-birth"
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
+            <label htmlFor="patient-complaint">Queixa Principal (opcional)</label>
+            <textarea
+              id="patient-complaint"
+              value={mainComplaint}
+              onChange={(e) => setMainComplaint(e.target.value)}
+              placeholder="Queixa principal do paciente"
             />
           </div>
 
           <div className="patients-form-group">
-            <label htmlFor="patient-notes">Observações</label>
+            <label htmlFor="patient-notes">Observações (opcional)</label>
             <textarea
               id="patient-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Observações sobre o paciente (opcional)"
+              placeholder="Observações adicionais"
             />
           </div>
 
