@@ -25,6 +25,24 @@ public class Patient {
     @Column(nullable = false)
     private String fullName;
 
+    @Column(nullable = false, length = 20)
+    private String sex;
+
+    @Column(length = 14)
+    private String cpf;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
+    @Column(columnDefinition = "TEXT")
+    private String medicalDiagnosis;
+
+    @Column(columnDefinition = "TEXT")
+    private String mainComplaint;
+
     @Column
     private LocalDate birthDate;
 

@@ -1,6 +1,7 @@
 package br.edu.ufpb.fisioquest.controller;
 
 import br.edu.ufpb.fisioquest.dto.request.CreatePatientRequest;
+import br.edu.ufpb.fisioquest.dto.request.UpdatePatientRequest;
 import br.edu.ufpb.fisioquest.dto.response.PatientDetailResponse;
 import br.edu.ufpb.fisioquest.dto.response.PatientResponse;
 import br.edu.ufpb.fisioquest.service.PatientService;
@@ -44,6 +45,15 @@ public class PatientController {
                                                             @AuthenticationPrincipal Jwt jwt) {
         UUID physiotherapistId = UUID.fromString(jwt.getSubject());
         PatientDetailResponse detail = patientService.getPatient(patientId, physiotherapistId);
+        return ResponseEntity.ok(detail);
+    }
+
+    @PutMapping("/{patientId}")
+    public ResponseEntity<PatientDetailResponse> updatePatient(@PathVariable UUID patientId,
+                                                               @RequestBody UpdatePatientRequest request,
+                                                               @AuthenticationPrincipal Jwt jwt) {
+        UUID physiotherapistId = UUID.fromString(jwt.getSubject());
+        PatientDetailResponse detail = patientService.updatePatient(patientId, request, physiotherapistId);
         return ResponseEntity.ok(detail);
     }
 }

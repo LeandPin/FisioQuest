@@ -8,7 +8,13 @@ import java.util.UUID;
 public record PatientDetailResponse(
     UUID id,
     String fullName,
+    String sex,
     LocalDate birthDate,
+    String cpf,
+    String phone,
+    String address,
+    String medicalDiagnosis,
+    String mainComplaint,
     String notes,
     Instant createdAt,
     List<QuestionnaireResponseSummary> responses

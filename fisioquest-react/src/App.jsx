@@ -4,28 +4,49 @@ import Home from "./pages/Home";
 import SelecionarQuestionario from "./pages/SelecionarQuestionario";
 import Cinesiofobia from "./pages/Cinesiofobia";
 import PensamentoCatastrofico from "./pages/PensamentoCatastrofico";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Patients from "./pages/Patients";
+import PatientProfile from "./pages/PatientProfile";
+
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={<Home />}
-      />
+      {/* Rotas públicas */}
+      <Route path="/" element={<Home />} />
+      <Route path="/questionarios" element={<SelecionarQuestionario />} />
+      <Route path="/cinesiofobia" element={<Cinesiofobia />} />
+      <Route path="/pensamento-catastrofico" element={<PensamentoCatastrofico />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
+      {/* Rotas protegidas */}
       <Route
-        path="/questionarios"
-        element={<SelecionarQuestionario />}
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
       />
-
       <Route
-        path="/cinesiofobia"
-        element={<Cinesiofobia />}
+        path="/patients"
+        element={
+          <ProtectedRoute>
+            <Patients />
+          </ProtectedRoute>
+        }
       />
-
       <Route
-        path="/pensamento-catastrofico"
-        element={<PensamentoCatastrofico />}
+        path="/patients/:id"
+        element={
+          <ProtectedRoute>
+            <PatientProfile />
+          </ProtectedRoute>
+        }
       />
     </Routes>
   );

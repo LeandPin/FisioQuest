@@ -1,8 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import logo from "../assets/images/fisioquestbranco.png";
 
-// 1. Adicionamos a prop { mostrarVoltar } entre as chaves
 function QuestionarioHeader({ mostrarVoltar }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
   return (
     <div className="navbar">
       <Link to="/" className="logo">
@@ -10,11 +18,26 @@ function QuestionarioHeader({ mostrarVoltar }) {
       </Link>
 
       <div className="menu">
-        <Link to="/">Início</Link>
-        
-        {/* 2. O botão só vai aparecer se mostrarVoltar for passado como true */}
-        {mostrarVoltar && (
-          <Link to="/questionarios">← Voltar</Link>
+        {user ? (
+          <>
+            <Link to="/questionarios">Questionários</Link>
+            {mostrarVoltar && (
+              <Link to="/questionarios">← Voltar</Link>
+            )}
+            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/patients">Pacientes</Link>
+            <button className="cta-button" onClick={handleLogout} style={{ cursor: "pointer" }}>
+              Sair
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/">Início</Link>
+            {mostrarVoltar && (
+              <Link to="/questionarios">← Voltar</Link>
+            )}
+            <Link to="/login">Entrar</Link>
+          </>
         )}
       </div>
     </div>
