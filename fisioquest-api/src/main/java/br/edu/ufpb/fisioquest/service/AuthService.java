@@ -9,11 +9,15 @@ import br.edu.ufpb.fisioquest.entity.User;
 import br.edu.ufpb.fisioquest.enums.Role;
 import br.edu.ufpb.fisioquest.exception.AccountLockedException;
 import br.edu.ufpb.fisioquest.exception.EmailAlreadyExistsException;
+import br.edu.ufpb.fisioquest.exception.EmailDomainNotAllowedException;
+import br.edu.ufpb.fisioquest.exception.EmailNotVerifiedException;
+import br.edu.ufpb.fisioquest.exception.InvalidConfirmationTokenException;
 import br.edu.ufpb.fisioquest.repository.RefreshTokenRepository;
 import br.edu.ufpb.fisioquest.repository.UserRepository;
 import br.edu.ufpb.fisioquest.security.TokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,28 +39,58 @@ public class AuthService {
     private static final long LOCK_DURATION_MINUTES = 10;
     private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
     private static final String REFRESH_TOKEN_PATH = "/api/auth/refresh";
+    private static final long EMAIL_TOKEN_VALIDITY_HOURS = 24;
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
+
+    @Value("${app.allowed-email-domains}")
+    private String allowedEmailDomainsRaw;
 
     public AuthService(UserRepository userRepository,
                        RefreshTokenRepository refreshTokenRepository,
                        TokenService tokenService,
                        PasswordEncoder passwordEncoder,
-                       AuthenticationManager authenticationManager) {
+                       AuthenticationManager authenticationManager,
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.tokenService = tokenService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.emailService = emailService;
+    }
+
+    /**
+     * Returns the list of allowed email domains from the injected configuration string.
+     */
+    private List<String> getAllowedEmailDomains() {
+        return List.of(allowedEmailDomainsRaw.split(","))
+                .stream()
+                .map(String::trim)
+                .filter(d -> !d.isBlank())
+                .toList();
+    }
+
+    /**
+     * Extracts the domain part from an email address (the part after '@').
+     */
+    private String extractDomain(String email) {
+        int atIndex = email.lastIndexOf('@');
+        if (atIndex < 0 || atIndex == email.length() - 1) {
+            return "";
+        }
+        return email.substring(atIndex + 1).toLowerCase();
     }
 
     /**
      * Registra um novo fisioterapeuta.
-     * Valida unicidade do email, codifica senha com BCrypt, persiste User com role FISIOTERAPEUTA.
+     * Valida unicidade do email, valida domínio institucional, codifica senha com BCrypt,
+     * persiste User com emailVerified=false, gera token de confirmação e envia e-mail.
      */
     @Transactional
     public UserResponse register(RegisterRequest request) {
@@ -62,15 +98,32 @@ public class AuthService {
             throw new EmailAlreadyExistsException();
         }
 
+        // Validate email domain against allowed list
+        String domain = extractDomain(request.email());
+        List<String> allowedDomains = getAllowedEmailDomains();
+        if (!allowedDomains.contains(domain)) {
+            throw new EmailDomainNotAllowedException();
+        }
+
+        // Generate a secure confirmation token valid for 24 hours
+        String confirmToken = UUID.randomUUID().toString();
+        Instant tokenExpiresAt = Instant.now().plus(EMAIL_TOKEN_VALIDITY_HOURS, ChronoUnit.HOURS);
+
         User user = User.builder()
                 .fullName(request.fullName())
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .role(Role.FISIOTERAPEUTA)
                 .failedLoginAttempts(0)
+                .emailVerified(false)
+                .emailVerificationToken(confirmToken)
+                .emailVerificationTokenExpiresAt(tokenExpiresAt)
                 .build();
 
         User saved = userRepository.save(user);
+
+        // Send confirmation email — fire-and-forget; wraps SMTP errors as RuntimeException
+        emailService.sendConfirmationEmail(saved.getEmail(), saved.getFullName(), confirmToken);
 
         return new UserResponse(
                 saved.getId(),
@@ -83,7 +136,7 @@ public class AuthService {
 
     /**
      * Autentica o fisioterapeuta, gera Access_Token e Refresh_Token.
-     * Implementa rate limiting: 5 tentativas → bloqueio de 10 minutos.
+     * Verifica bloqueio, rate limiting e que o e-mail está confirmado antes de emitir tokens.
      */
     @Transactional
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
@@ -103,6 +156,11 @@ public class AuthService {
         } catch (BadCredentialsException e) {
             handleFailedLogin(user);
             throw new BadCredentialsException("Credenciais inválidas");
+        }
+
+        // Verifica se o e-mail foi confirmado
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException();
         }
 
         // Login bem-sucedido: reseta tentativas falhas
@@ -128,6 +186,50 @@ public class AuthService {
         addRefreshTokenCookie(response, rawRefreshToken);
 
         return new LoginResponse(accessToken);
+    }
+
+    /**
+     * Confirma o e-mail do usuário pelo token recebido no e-mail.
+     * Lança InvalidConfirmationTokenException se o token for inválido ou expirado.
+     */
+    @Transactional
+    public void confirmEmail(String token) {
+        User user = userRepository.findByEmailVerificationToken(token)
+                .orElseThrow(InvalidConfirmationTokenException::new);
+
+        if (user.isEmailTokenExpired()) {
+            throw new InvalidConfirmationTokenException();
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setEmailVerificationTokenExpiresAt(null);
+        userRepository.save(user);
+    }
+
+    /**
+     * Reenvio do e-mail de confirmação.
+     * Gera novo token (invalidando o anterior) se o usuário existir e ainda não tiver confirmado.
+     * Sempre retorna sucesso para não revelar se um e-mail está cadastrado.
+     */
+    @Transactional
+    public void resendConfirmation(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (!user.isEmailVerified()) {
+                String newToken = UUID.randomUUID().toString();
+                Instant newExpiresAt = Instant.now().plus(EMAIL_TOKEN_VALIDITY_HOURS, ChronoUnit.HOURS);
+
+                user.setEmailVerificationToken(newToken);
+                user.setEmailVerificationTokenExpiresAt(newExpiresAt);
+                userRepository.save(user);
+
+                emailService.sendConfirmationEmail(user.getEmail(), user.getFullName(), newToken);
+            }
+        }
+        // Always return silently — do not reveal whether the account exists or is already verified
     }
 
     /**

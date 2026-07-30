@@ -151,20 +151,25 @@ export function AuthProvider({ children }) {
 
   /**
    * POST /api/auth/register — Registra um novo fisioterapeuta.
-   * Após sucesso, automaticamente chama login para estabelecer a sessão.
+   * Não faz login automático pois o e-mail precisa ser confirmado primeiro.
+   * Retorna a resposta da API para que o componente possa exibir mensagem de confirmação.
    */
-  const register = useCallback(
-    async (fullName, email, password) => {
-      await authApi.post("/api/auth/register", {
-        fullName,
-        email,
-        password,
-      });
-      // Após registro bem-sucedido, faz login automaticamente
-      await login(email, password);
-    },
-    [login]
-  );
+  const register = useCallback(async (fullName, email, password) => {
+    const response = await authApi.post("/api/auth/register", {
+      fullName,
+      email,
+      password,
+    });
+    return response.data;
+  }, []);
+
+  /**
+   * POST /api/auth/resend-confirmation — Reenvia o e-mail de confirmação.
+   * Sempre retorna sucesso (a API não revela se o e-mail existe).
+   */
+  const resendConfirmation = useCallback(async (email) => {
+    await authApi.post("/api/auth/resend-confirmation", { email });
+  }, []);
 
   /**
    * POST /api/auth/logout — Encerra a sessão.
@@ -205,7 +210,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, logout, register, getAccessToken }}
+      value={{ user, loading, login, logout, register, resendConfirmation, getAccessToken }}
     >
       {children}
     </AuthContext.Provider>

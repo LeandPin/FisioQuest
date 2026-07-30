@@ -16,5 +16,12 @@ services:
       timeout: 3s
       retries: 5
 
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: fisioquest-mailhog
+    ports:
+      - "1025:1025"   # SMTP (usado pelo Spring Boot)
+      - "8025:8025"   # Web UI para visualizar e-mails capturados
+
 volumes:
   pgdata:

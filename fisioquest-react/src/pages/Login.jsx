@@ -9,7 +9,11 @@ function Login() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const { user, loading, login } = useAuth();
+  // Whether the error is specifically an unverified email (HTTP 403)
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resendStatus, setResendStatus] = useState(""); // "", "sending", "sent", "error"
+
+  const { user, loading, login, resendConfirmation } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -25,17 +29,38 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setEmailNotVerified(false);
+    setResendStatus("");
     setSubmitting(true);
 
     try {
       await login(email, password);
       navigate(redirectTo, { replace: true });
-    } catch {
-      setError("E-mail ou senha incorretos.");
+    } catch (err) {
+      if (err.response?.status === 403) {
+        // EmailNotVerifiedException — e-mail cadastrado mas não confirmado
+        setEmailNotVerified(true);
+        setError(
+          "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação."
+        );
+      } else {
+        setEmailNotVerified(false);
+        setError("E-mail ou senha incorretos.");
+      }
     } finally {
       setSubmitting(false);
     }
   };
+
+  async function handleResendConfirmation() {
+    setResendStatus("sending");
+    try {
+      await resendConfirmation(email);
+      setResendStatus("sent");
+    } catch {
+      setResendStatus("error");
+    }
+  }
 
   // Mostra nada enquanto verifica sessão existente
   if (loading) {
@@ -57,13 +82,48 @@ function Login() {
             </div>
           )}
 
+          {emailNotVerified && (
+            <div className="auth-unverified-actions">
+              {resendStatus === "sent" && (
+                <div className="auth-success-banner" role="status" aria-live="polite">
+                  E-mail de confirmação reenviado com sucesso!
+                </div>
+              )}
+              {resendStatus === "error" && (
+                <div className="auth-server-error" role="alert" aria-live="polite">
+                  Não foi possível reenviar o e-mail. Tente novamente em instantes.
+                </div>
+              )}
+              <button
+                type="button"
+                className="auth-resend-btn"
+                onClick={handleResendConfirmation}
+                disabled={resendStatus === "sending" || resendStatus === "sent"}
+              >
+                {resendStatus === "sending"
+                  ? "Reenviando..."
+                  : resendStatus === "sent"
+                  ? "E-mail reenviado ✓"
+                  : "Reenviar e-mail de confirmação"}
+              </button>
+            </div>
+          )}
+
           <div className="auth-field">
             <label htmlFor="login-email">E-mail</label>
             <input
               id="login-email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                // Reset error states when user types
+                if (error) {
+                  setError("");
+                  setEmailNotVerified(false);
+                  setResendStatus("");
+                }
+              }}
               placeholder="seu@email.com"
               required
               autoComplete="email"

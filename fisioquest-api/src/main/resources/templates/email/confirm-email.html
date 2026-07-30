@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirme seu e-mail — FisioQuest</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: Arial, Helvetica, sans-serif;">
+
+    <!-- Wrapper -->
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+           style="background-color: #f4f6f9; padding: 40px 0;">
+        <tr>
+            <td align="center">
+
+                <!-- Card -->
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0"
+                       style="background-color: #ffffff; border-radius: 8px;
+                              box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;
+                              max-width: 600px; width: 100%;">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #1a6bb5; padding: 32px 40px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;
+                                       letter-spacing: 0.5px;">
+                                FisioQuest
+                            </h1>
+                            <p style="margin: 8px 0 0 0; color: #cce0f5; font-size: 13px;">
+                                Sistema de Avaliação Fisioterapêutica — UFPB
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 40px 32px 40px;">
+
+                            <!-- Greeting -->
+                            <p style="margin: 0 0 16px 0; color: #1a1a2e; font-size: 16px; line-height: 1.5;">
+                                Olá, <strong th:text="${fullName}">Nome do Usuário</strong>,
+                            </p>
+
+                            <p style="margin: 0 0 24px 0; color: #4a4a6a; font-size: 15px; line-height: 1.6;">
+                                Recebemos uma solicitação de cadastro no FisioQuest com este endereço de e-mail.
+                                Para ativar sua conta, clique no botão abaixo para confirmar seu e-mail.
+                            </p>
+
+                            <!-- CTA Button -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0"
+                                   style="margin: 0 auto 32px auto;">
+                                <tr>
+                                    <td align="center" style="border-radius: 6px;
+                                                              background-color: #1a6bb5;">
+                                        <a th:href="${confirmationUrl}"
+                                           href="#"
+                                           style="display: inline-block; padding: 14px 32px;
+                                                  color: #ffffff; font-size: 15px; font-weight: 700;
+                                                  text-decoration: none; border-radius: 6px;
+                                                  letter-spacing: 0.3px;">
+                                            Confirmar meu e-mail
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Fallback link -->
+                            <p style="margin: 0 0 8px 0; color: #6b6b8a; font-size: 13px; line-height: 1.5;">
+                                Se o botão não funcionar, copie e cole o link abaixo no seu navegador:
+                            </p>
+                            <p style="margin: 0 0 32px 0; word-break: break-all;">
+                                <a th:href="${confirmationUrl}"
+                                   th:text="${confirmationUrl}"
+                                   href="#"
+                                   style="color: #1a6bb5; font-size: 13px; text-decoration: underline;">
+                                    link de confirmação
+                                </a>
+                            </p>
+
+                            <!-- Expiry warning -->
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="background-color: #fff8e1; border-left: 4px solid #f59e0b;
+                                               border-radius: 4px; padding: 14px 16px; margin-bottom: 24px;">
+                                        <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.5;">
+                                            ⚠️ <strong>Atenção:</strong> este link é válido por
+                                            <strong th:text="${expirationHours}">24</strong> horas.
+                                            Após esse prazo, você precisará solicitar um novo link de confirmação.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- Ignore notice -->
+                    <tr>
+                        <td style="background-color: #f8f9fc; padding: 24px 40px;
+                                   border-top: 1px solid #e8eaf0;">
+                            <p style="margin: 0; color: #8a8aa8; font-size: 13px; line-height: 1.6;">
+                                Se você não solicitou cadastro no FisioQuest, ignore este e-mail com segurança.
+                                Nenhuma ação é necessária e sua conta não será criada.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px 40px; text-align: center;">
+                            <p style="margin: 0; color: #b0b0c8; font-size: 12px; line-height: 1.6;">
+                                FisioQuest — Universidade Federal da Paraíba (UFPB)<br />
+                                Este é um e-mail automático. Por favor, não responda a esta mensagem.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+                <!-- /Card -->
+
+            </td>
+        </tr>
+    </table>
+    <!-- /Wrapper -->
+
+</body>
+</html>
