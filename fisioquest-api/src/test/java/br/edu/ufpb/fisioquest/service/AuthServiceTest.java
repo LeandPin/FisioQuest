@@ -1,14 +1,19 @@
 package br.edu.ufpb.fisioquest.service;
 
 import br.edu.ufpb.fisioquest.dto.request.LoginRequest;
+import br.edu.ufpb.fisioquest.dto.request.RegisterRequest;
 import br.edu.ufpb.fisioquest.dto.response.LoginResponse;
 import br.edu.ufpb.fisioquest.entity.RefreshToken;
 import br.edu.ufpb.fisioquest.entity.User;
 import br.edu.ufpb.fisioquest.enums.Role;
 import br.edu.ufpb.fisioquest.exception.AccountLockedException;
+import br.edu.ufpb.fisioquest.exception.EmailDomainNotAllowedException;
+import br.edu.ufpb.fisioquest.exception.EmailNotVerifiedException;
+import br.edu.ufpb.fisioquest.exception.InvalidConfirmationTokenException;
 import br.edu.ufpb.fisioquest.repository.RefreshTokenRepository;
 import br.edu.ufpb.fisioquest.repository.UserRepository;
 import br.edu.ufpb.fisioquest.security.TokenService;
+import br.edu.ufpb.fisioquest.service.EmailService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +27,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -57,6 +63,9 @@ class AuthServiceTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
+    private EmailService emailService;
+
+    @Mock
     private HttpServletResponse httpServletResponse;
 
     @InjectMocks
@@ -66,6 +75,9 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Inject allowed email domains via reflection (replaces @Value injection)
+        ReflectionTestUtils.setField(authService, "allowedEmailDomainsRaw", "ci.ufpb.br,academico.ufpb.br,test.com");
+
         testUser = User.builder()
                 .id(UUID.randomUUID())
                 .fullName("João Silva")
@@ -74,6 +86,7 @@ class AuthServiceTest {
                 .role(Role.FISIOTERAPEUTA)
                 .failedLoginAttempts(0)
                 .lockedUntil(null)
+                .emailVerified(true)
                 .createdAt(Instant.now())
                 .build();
     }
@@ -187,5 +200,70 @@ class AuthServiceTest {
         // Verify: no new tokens are generated
         verify(tokenService, never()).generateAccessToken(any(User.class));
         verify(tokenService, never()).generateRefreshToken();
+    }
+
+    // ========== Email Domain Validation Tests (Requirement 15.1, 15.2) ==========
+
+    @Test
+    @DisplayName("Register with disallowed email domain throws EmailDomainNotAllowedException")
+    void register_withDisallowedDomain_throwsEmailDomainNotAllowedException() {
+        // Given: email with disallowed domain
+        RegisterRequest request = new RegisterRequest(
+                "João Silva",
+                "joao@gmail.com",
+                "password123"
+        );
+
+        // When & Then: registration throws EmailDomainNotAllowedException
+        assertThatThrownBy(() -> authService.register(request))
+                .isInstanceOf(EmailDomainNotAllowedException.class)
+                .hasMessageContaining("domínio");
+
+        // Verify: user is never saved
+        verify(userRepository, never()).save(any(User.class));
+        verify(emailService, never()).sendConfirmationEmail(anyString(), anyString(), anyString());
+    }
+
+    // ========== Email Verification Tests (Requirements 15.3, 15.5, 15.6) ==========
+
+    @Test
+    @DisplayName("Login with unverified email throws EmailNotVerifiedException")
+    void login_withUnverifiedEmail_throwsEmailNotVerifiedException() {
+        // Given: user with emailVerified = false
+        testUser.setEmailVerified(false);
+        LoginRequest request = new LoginRequest("joao@test.com", "correctpassword");
+
+        when(userRepository.findByEmail("joao@test.com")).thenReturn(Optional.of(testUser));
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(new UsernamePasswordAuthenticationToken("joao@test.com", "correctpassword"));
+
+        // When & Then: login throws EmailNotVerifiedException
+        assertThatThrownBy(() -> authService.login(request, httpServletResponse))
+                .isInstanceOf(EmailNotVerifiedException.class)
+                .hasMessageContaining("verificado");
+
+        // Verify: no tokens are generated
+        verify(tokenService, never()).generateAccessToken(any(User.class));
+        verify(tokenService, never()).generateRefreshToken();
+    }
+
+    @Test
+    @DisplayName("confirmEmail with expired token throws InvalidConfirmationTokenException")
+    void confirmEmail_withExpiredToken_throwsInvalidConfirmationTokenException() {
+        // Given: user with expired token (expiresAt in the past)
+        String token = "expired-token-uuid";
+        testUser.setEmailVerificationToken(token);
+        testUser.setEmailVerificationTokenExpiresAt(Instant.now().minus(1, ChronoUnit.HOURS));
+        testUser.setEmailVerified(false);
+
+        when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.of(testUser));
+
+        // When & Then: confirmEmail throws InvalidConfirmationTokenException
+        assertThatThrownBy(() -> authService.confirmEmail(token))
+                .isInstanceOf(InvalidConfirmationTokenException.class)
+                .hasMessageContaining("inválido");
+
+        // Verify: user's emailVerified is NOT set to true
+        verify(userRepository, never()).save(any(User.class));
     }
 }

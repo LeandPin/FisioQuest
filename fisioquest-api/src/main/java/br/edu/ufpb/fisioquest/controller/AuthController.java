@@ -2,6 +2,7 @@ package br.edu.ufpb.fisioquest.controller;
 
 import br.edu.ufpb.fisioquest.dto.request.LoginRequest;
 import br.edu.ufpb.fisioquest.dto.request.RegisterRequest;
+import br.edu.ufpb.fisioquest.dto.request.ResendConfirmationRequest;
 import br.edu.ufpb.fisioquest.dto.response.LoginResponse;
 import br.edu.ufpb.fisioquest.dto.response.UserResponse;
 import br.edu.ufpb.fisioquest.service.AuthService;
@@ -49,5 +50,17 @@ public class AuthController {
                                        HttpServletResponse response) {
         authService.logout(jwt, response);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/confirm-email")
+    public ResponseEntity<Void> confirmEmail(@RequestParam String token) {
+        authService.confirmEmail(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/resend-confirmation")
+    public ResponseEntity<Void> resendConfirmation(@Valid @RequestBody ResendConfirmationRequest request) {
+        authService.resendConfirmation(request.email());
+        return ResponseEntity.ok().build();
     }
 }

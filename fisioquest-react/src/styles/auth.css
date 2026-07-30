@@ -182,3 +182,103 @@
     font-size: 1.5rem;
   }
 }
+
+/* ======= EMAIL VERIFICATION STATES ======= */
+
+.auth-info-box {
+  background: #ebf8ff;
+  border: 1.5px solid #bee3f8;
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  color: #2b6cb0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.auth-info-box p + p {
+  margin-top: 8px;
+}
+
+.auth-success-banner {
+  background: #f0fff4;
+  border: 1.5px solid #9ae6b4;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  color: #276749;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.auth-error {
+  background: #fff5f5;
+  border: 1.5px solid #feb2b2;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  color: #c53030;
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.auth-unverified-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: -8px;
+  margin-bottom: 4px;
+}
+
+.auth-resend-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--primary);
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 2px solid var(--primary);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-top: 4px;
+}
+
+.auth-resend-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: #fff;
+}
+
+.auth-resend-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+/* Resend button used standalone (Register success screen) */
+.auth-submit-btn.auth-resend-btn {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  box-shadow: none;
+  margin-top: 0;
+}
+
+.auth-submit-btn.auth-resend-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 201, 167, 0.25);
+  transform: translateY(-1px);
+}
+
+.auth-submit-btn.auth-resend-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: var(--border);
+  color: var(--text-muted);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}

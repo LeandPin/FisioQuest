@@ -44,6 +44,16 @@ public class User {
     @Column
     private Instant lockedUntil;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
+
+    @Column(name = "email_verification_token")
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_token_expires_at")
+    private Instant emailVerificationTokenExpiresAt;
+
     @PrePersist
     void prePersist() {
         this.createdAt = Instant.now();
@@ -51,5 +61,10 @@ public class User {
 
     public boolean isLocked() {
         return lockedUntil != null && Instant.now().isBefore(lockedUntil);
+    }
+
+    public boolean isEmailTokenExpired() {
+        return emailVerificationTokenExpiresAt == null
+                || Instant.now().isAfter(emailVerificationTokenExpiresAt);
     }
 }
